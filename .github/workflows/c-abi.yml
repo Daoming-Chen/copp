@@ -206,6 +206,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPO: ${{ github.repository }}
         run: |
           $assetPaths = @(
             Get-ChildItem release-assets -Recurse -File |
@@ -226,15 +227,17 @@ jobs:
           See CHANGELOG.md in this tag for API changes and breaking changes.
           '@ | Set-Content -Path $notesFile -NoNewline
 
-          gh release view $env:RELEASE_TAG *> $null
+          gh release view $env:RELEASE_TAG --repo $env:RELEASE_REPO *> $null
           if ($LASTEXITCODE -eq 0) {
-            & gh release upload $env:RELEASE_TAG @assetPaths --clobber
+            & gh release upload $env:RELEASE_TAG @assetPaths --repo $env:RELEASE_REPO --clobber
             & gh release edit $env:RELEASE_TAG `
+              --repo $env:RELEASE_REPO `
               --draft `
               --title $env:RELEASE_TAG `
               --notes-file $notesFile
           } else {
             & gh release create $env:RELEASE_TAG @assetPaths `
+              --repo $env:RELEASE_REPO `
               --draft `
               --verify-tag `
               --title $env:RELEASE_TAG `
